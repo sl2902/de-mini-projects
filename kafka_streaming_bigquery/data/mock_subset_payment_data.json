@@ -1,0 +1,10 @@
+{"payment_id": "P1001", "booking_id": "B1001", "payment_time": "2023-01-01 00:24:00", "payment_method": "UPI", "payment_status": "In progress"}
+{"payment_id": "P1002", "booking_id": "B1002", "payment_time": "2023-01-01 00:57:00", "payment_method": "Debit Card", "payment_status": "Initiated"}
+{"payment_id": "P1003", "booking_id": "B1003", "payment_time": "2023-01-01 01:13:00", "payment_method": "Debit Card", "payment_status": "In progress"}
+{"payment_id": "P1004", "booking_id": "B1004", "payment_time": "2023-01-01 01:40:00", "payment_method": "Net Banking", "payment_status": "Initiated"}
+{"payment_id": "P1005", "booking_id": "B1005", "payment_time": "2023-01-01 04:57:00", "payment_method": "Credit Card", "payment_status": "Completed"}
+{"payment_id": "P1006", "booking_id": "B1006", "payment_time": "2023-01-01 05:33:00", "payment_method": "UPI", "payment_status": "Failed"}
+{"payment_id": "P1007", "booking_id": "B1007", "payment_time": "2023-01-01 06:51:00", "payment_method": "Debit Card", "payment_status": "In progress"}
+{"payment_id": "P1008", "booking_id": "B1008", "payment_time": "2023-01-01 07:08:00", "payment_method": "Credit Card", "payment_status": "In progress"}
+{"payment_id": "P1009", "booking_id": "B1009", "payment_time": "2023-01-01 07:18:00", "payment_method": "Debit Card", "payment_status": "Failed"}
+{"payment_id": "P1010", "booking_id": "B1010", "payment_time": "2023-01-01 09:26:00", "payment_method": "Debit Card", "payment_status": "Failed"}

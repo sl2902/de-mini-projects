@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://flights.com/payment.schema.json",
+  "title": "payments",
+  "description": "payments schema",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "payment_id": {
+      "type": "string",
+      "description": "unique id"
+    },
+    "booking_id": {
+      "type": "string",
+      "description": "reference id"
+    },
+    "payment_time": {
+      "type": "string",
+      "description": "timestamp format yyyy-mm-dd hh:mm:ss"
+    },
+    "payment_method": {
+      "type": "string",
+      "description": "ordinal"
+    },
+    "payment_status": {
+      "type": "string",
+      "description": "ordinal"
+    }
+  }
+}

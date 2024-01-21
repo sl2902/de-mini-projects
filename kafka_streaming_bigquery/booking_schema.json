@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://flights.com/booking.schema.json",
+  "title": "bookings",
+  "description": "booking schema",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "booking_id": {
+      "type": "string",
+      "description": "unique id"
+    },
+    "customer_id": {
+      "type": "string",
+      "description": "reference id"
+    },
+    "flight_id": {
+      "type": "string",
+      "description": "reference id"
+    },
+    "booking_time": {
+      "type": "string",
+      "description": "timestamp format yyyy-mm-dd hh:mm:ss"
+    },
+    "origin": {
+      "type": "string",
+      "description": "origin airport code"
+    },
+    "destination": {
+      "type": "string",
+      "description": "destination airport code"
+    },
+    "price": {
+      "type": "number",
+      "description": "price of ticket"
+    }
+  }
+}

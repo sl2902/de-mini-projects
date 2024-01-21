@@ -1,0 +1,14 @@
+# Steps to run pub/sub lite
+
+python pubsublite_reservation.py
+python pubsublite_topic_creation.py --topic=bookings
+python pubsublite_topic_creation.py --topic=payments
+python pubsublite_subscription.py --topic=bookings
+python pubsublite_subscription.py --topic=payments
+
+# (by default it listens for latetest messages)
+python pubsublite_pyspark_consumer.py 
+
+python pubsublite_pyspark_bookings_producer.py
+python pubsublite_pyspark_payments_producer.py
+

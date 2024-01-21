@@ -1,0 +1,10 @@
+{"booking_id": "B1001", "customer_id": "C1001", "flight_id": "F1001", "booking_time": "2023-01-01 00:12:00", "origin": "JKL", "destination": "ZYX", "price": 5866}
+{"booking_id": "B1002", "customer_id": "C1002", "flight_id": "F1002", "booking_time": "2023-01-01 00:44:00", "origin": "PQR", "destination": "KJI", "price": 9324}
+{"booking_id": "B1003", "customer_id": "C1003", "flight_id": "F1003", "booking_time": "2023-01-01 01:00:00", "origin": "STU", "destination": "KJI", "price": 1261}
+{"booking_id": "B1004", "customer_id": "C1004", "flight_id": "F1004", "booking_time": "2023-01-01 01:28:00", "origin": "JKL", "destination": "WVU", "price": 5846}
+{"booking_id": "B1005", "customer_id": "C1005", "flight_id": "F1005", "booking_time": "2023-01-01 04:47:00", "origin": "JKL", "destination": "TSR", "price": 2188}
+{"booking_id": "B1006", "customer_id": "C1006", "flight_id": "F1006", "booking_time": "2023-01-01 05:19:00", "origin": "VWX", "destination": "TSR", "price": 3136}
+{"booking_id": "B1007", "customer_id": "C1007", "flight_id": "F1007", "booking_time": "2023-01-01 06:41:00", "origin": "STU", "destination": "KJI", "price": 3291}
+{"booking_id": "B1008", "customer_id": "C1008", "flight_id": "F1008", "booking_time": "2023-01-01 06:54:00", "origin": "JKL", "destination": "NML", "price": 9605}
+{"booking_id": "B1009", "customer_id": "C1009", "flight_id": "F1009", "booking_time": "2023-01-01 07:06:00", "origin": "ABC", "destination": "YZW", "price": 4282}
+{"booking_id": "B1010", "customer_id": "C1010", "flight_id": "F1010", "booking_time": "2023-01-01 09:14:00", "origin": "STU", "destination": "YZN", "price": 2595}
