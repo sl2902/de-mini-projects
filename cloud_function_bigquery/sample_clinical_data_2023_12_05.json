@@ -1,0 +1,10 @@
+{"patient_id": "P10001", "hospital_id": "H500", "diagnosis_code": "C15.3", "disease": "Esophageal Cancer", "diagnosis_date": "2023-01-10", "treatment": "Radiation Therapy", "doctor": "Dr. Alice"}
+{"patient_id": "P10002", "hospital_id": "H501", "diagnosis_code": "B20.0", "disease": "HIV", "diagnosis_date": "2023-01-11", "treatment": "Antiretroviral Therapy", "doctor": "Dr. Bob"}
+{"patient_id": "P10003", "hospital_id": "H502", "diagnosis_code": "C20", "disease": "Colorectal Cancer", "diagnosis_date": "2023-01-12", "treatment": "Chemotherapy", "doctor": "Dr. Charlie"}
+{"patient_id": "P10004", "hospital_id": "H503", "diagnosis_code": "C18.7", "disease": "Colon Cancer", "diagnosis_date": "2023-01-13", "treatment": "Surgical Resection", "doctor": "Dr. Dana"}
+{"patient_id": "P10005", "hospital_id": "H504", "diagnosis_code": "C50.9", "disease": "Breast Cancer", "diagnosis_date": "2023-01-15", "doctor": "Dr. Eva"}
+{"patient_id": "P10006", "hospital_id": "H505", "diagnosis_code": "J18.9", "disease": "Pneumonia", "diagnosis_date": "2023-01-16", "treatment": "Antibiotics", "doctor": "Dr. Frank"}
+{"patient_id": "P10007", "hospital_id": "H506", "diagnosis_code": "C22.8", "disease": "Liver Cancer", "diagnosis_date": "2023/01/17", "treatment": "Targeted Therapy", "doctor": "Dr. Grace"}
+{"patient_id": "P10008", "hospital_id": "H507", "diagnosis_code": "J45.9", "disease": "Asthma", "diagnosis_date": "2023-01-18", "treatment": "Inhaler Therapy", "doctor": "Dr. Henry"}
+{"patient_id": "P10009", "hospital_id": "H508", "diagnosis_code": "C61", "disease": "Prostate Cancer", "diagnosis_date": "2023-01-19", "treatment": "Hormone Therapy", "doctor": "Dr. Ida"}
+{"patient_id": "P10010", "hospital_id": "H509", "diagnosis_code": "C16.3", "disease": "Stomach Cancer", "diagnosis_date": "2023-01-20T00:00:00", "treatment": "Endoscopic Resection", "doctor": "Dr. John"}

@@ -1,0 +1,33 @@
+To create cloudfunction job which triggers dataflow job the following was done
+
+1) create dataflow job and test it
+2) open google shell terminal
+3) git clone https://github.com/GoogleCloudPlatform/DataflowTemplates.git
+4) cd v1
+5) on this page https://github.com/GoogleCloudPlatform/DataflowTemplates/blob/main/v1/README_GCS_Text_to_BigQuery.md
+6) run mvn clean install -pl plugins/templates-maven-plugin -am
+7) fill project id and bucket name and thhen run the below command
+export PROJECT=<my-project>
+export BUCKET_NAME=<bucket-name>
+
+mvn clean package -PtemplatesStage  \
+-DskipTests \
+-DprojectId="$PROJECT" \
+-DbucketName="$BUCKET_NAME" \
+-DstagePrefix="templates" \
+-DtemplateName="GCS_Text_to_BigQuery" \
+-f v1
+8) check the bucket to make sure the template has been built
+9) prepare cloud function locally
+10) open cloud function console. by default it uses 2nd gen environment
+11) make sure all relevant APIs are enabled. Also enable eventarc receiver and sender role permission for your project's service account
+12) enter a function name and select the cloud storage trigger type
+13) select the appropriate event type and also the bucket which will be used to store dataflow artefacts
+14) in runtime, build settings, select the smallest number of max instances and increase the timeout
+15) use the default runtime service account or your own. if the default is chosen make sure the appropriate event arc roles have their permissions set
+16) click next, and select the appropriate runtime - python3.8 and paste your locally developed code. enter the function name
+17) add the libraries to the requirements.txt file
+18) deploy the function
+19) once successfully deployed. upload new file to storage bucket. check the dataflow dashboard to make sure the job has ran successfully
+20) go to biguqery dashboard and check if the dataset has been correctly created (make sure the dataset and table are present or it maynot
+be necessary to create the table after all; this is taken care of by the dataflow job as you would have specified the schema)

@@ -1,0 +1,11 @@
+{
+    "BigQuery Schema": [
+        {"name": "patient_id", "type": "STRING"},
+        {"name": "hospital_id", "type": "STRING"},
+        {"name": "diagnosis_code", "type": "STRING"},
+        {"name": "disease", "type": "STRING"},
+        {"name": "diagnosis_date", "type": "DATE"},
+        {"name": "treatment", "type": "STRING"},
+        {"name": "doctor", "type": "STRING"}
+    ]
+}
