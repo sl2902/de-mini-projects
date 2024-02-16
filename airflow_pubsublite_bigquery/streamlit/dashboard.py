@@ -47,8 +47,11 @@ mm_name = {
     "December": 12
 }
 
+#credentials = service_account.Credentials.from_service_account_info(
+#    json.load(open('/Users/home/Documents/secrets/personal-gcp.json'))
+#)
 credentials = service_account.Credentials.from_service_account_info(
-    json.load(open('/Users/home/Documents/secrets/personal-gcp.json'))
+    st.secrets["gcp_service_account"]
 )
 client = bigquery.Client(credentials=credentials)
 
