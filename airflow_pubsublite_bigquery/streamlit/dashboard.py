@@ -188,7 +188,7 @@ def make_heatmap(input_df, input_x, input_y, input_z, input_color, input_color_t
          ).encode(
             alt.Y(f"{input_y}:O", axis=alt.Axis(title="", titleFontSize=18, titlePadding=15, titleFontWeight=900, labelAngle=0), sort=list(mm_name.keys())),
             alt.X(f"{input_z}:O", axis=alt.Axis(title="", titleFontSize=18, titlePadding=15, titleFontWeight=900, labelAngle=0)),
-            tooltip=[input_y, alt.Tooltip("mean_revenue:Q", format="$,.0f")],
+            tooltip=[input_y, input_z, alt.Tooltip("mean_revenue:Q", format="$,.0f")],
          )
     heatmap = base.mark_rect().encode(
             # alt.Y(f"{input_y}").axis(format="%Y-%m-%d").title("txn date"),
