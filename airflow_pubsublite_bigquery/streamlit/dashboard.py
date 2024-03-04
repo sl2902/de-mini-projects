@@ -47,12 +47,14 @@ mm_name = {
     "December": 12
 }
 
-#credentials = service_account.Credentials.from_service_account_info(
-#    json.load(open('/Users/home/Documents/secrets/personal-gcp.json'))
-#)
+# credentials = service_account.Credentials.from_service_account_info(
+#     json.load(open('/Users/home/Documents/secrets/personal-gcp.json'))
+# )
+
 credentials = service_account.Credentials.from_service_account_info(
     st.secrets["gcp_service_account"]
 )
+
 client = bigquery.Client(credentials=credentials)
 
 @st.cache_data(ttl=600)
@@ -155,21 +157,21 @@ def transforms (df):
 with st.sidebar:
     st.title(f'🏂 {page_title}')
    #  transforms(mv_txn_prod)
-    year_list = mv_txn_prod["year"].unique()[::-1]
+    year_list = sorted(mv_txn_prod["year"].unique())
     month_list = sorted(mv_txn_prod["month_name"].unique())
    #  day_list = sorted(mv_txn_prod["dow"].unique(), key=lambda x: dow[x])
-   #  selected_year = st.selectbox('Select a year', year_list)
-   #  selected_month = st.selectbox('Select a month', sorted(month_list, key=lambda x: mm_name[x]))
+    selected_year = st.selectbox('Select a year', year_list)
+    selected_month = st.selectbox('Select a month', sorted(month_list, key=lambda x: mm_name[x]))
    #  selected_day = st.selectbox('Select a day of week', list(dow.keys()))
     selected_date = st.date_input("Select a date")
     color_theme_list = ['blues', 'cividis', 'greens', 'inferno', 'magma', 'plasma', 'reds', 'rainbow', 'turbo', 'viridis']
     selected_color_theme = st.selectbox('Select a color theme', color_theme_list)
     mv_txn_prod["txn_date"] = pd.to_datetime(mv_txn_prod["txn_date"], format="%Y-%m-%d")
-    aggregated_revenue = mv_txn_prod.groupby(["txn_date", "location", "category"], as_index=False)\
+    aggregated_revenue = mv_txn_prod.groupby(["year", "month", "location", "category"], as_index=False)\
                                  .agg({"revenue": 'mean'})\
                                  .round(0)\
                                  .sort_values(["location", "revenue"], ascending=[True, False])
-    daily_pct_change = mv_txn_prod.groupby(["txn_date", "location"], as_index=False).agg({"quantity": 'sum'})
+    daily_pct_change = mv_txn_prod.groupby(["year", "month", "location"], as_index=False).agg({"quantity": 'sum'})
     daily_pct_change["prev_day_qty"] = daily_pct_change.groupby(["location"], as_index=False)["quantity"].shift(1)
     daily_pct_change["pct_change"] = (daily_pct_change["quantity"] - daily_pct_change["prev_day_qty"]) / daily_pct_change["prev_day_qty"]
    #  daily_pct_change["year"] = daily_pct_change["txn_date"].dt.year
@@ -177,15 +179,16 @@ with st.sidebar:
    #  daily_pct_change["dow"] = daily_pct_change["txn_date"].dt.day_name()
 
 
-def make_heatmap(input_df, input_y, input_x, input_color, input_color_theme):
-    input_df["txn_date"] = input_df["txn_date"].astype(str)
-    base = alt.Chart(input_df).transform_aggregate(
+def make_heatmap(input_df, input_x, input_y, input_z, input_color, input_color_theme):
+    # input_df["txn_date"] = input_df["txn_date"].astype(str)
+    subset = input_df.query(f"({input_x} == @selected_year)").reset_index(drop=True)
+    base = alt.Chart(subset).transform_aggregate(
     mean_revenue=f'mean({input_color})',
-    groupby=[f"{input_x}", f"{input_y}"]
+    groupby=[f"{input_y}", f"{input_z}"]
          ).encode(
-            alt.Y(f"{input_y}:N", axis=alt.Axis(title="", titleFontSize=18, titlePadding=15, titleFontWeight=900, labelAngle=0)),
-            alt.X(f"{input_x}:O", axis=alt.Axis(title="", titleFontSize=18, titlePadding=15, titleFontWeight=900, labelAngle=0)),
-            tooltip=[f'{input_y}', f'{input_x}', alt.Tooltip("mean_revenue:Q", format="$,.0f")],
+            alt.Y(f"{input_y}:O", axis=alt.Axis(title="", titleFontSize=18, titlePadding=15, titleFontWeight=900, labelAngle=0), sort=list(mm_name.keys())),
+            alt.X(f"{input_z}:O", axis=alt.Axis(title="", titleFontSize=18, titlePadding=15, titleFontWeight=900, labelAngle=0)),
+            tooltip=[input_y, alt.Tooltip("mean_revenue:Q", format="$,.0f")],
          )
     heatmap = base.mark_rect().encode(
             # alt.Y(f"{input_y}").axis(format="%Y-%m-%d").title("txn date"),
@@ -208,8 +211,8 @@ def make_heatmap(input_df, input_y, input_x, input_color, input_color_theme):
     return heatmap
 
 # Choropleth map
-def make_choropleth(input_df, input_id, input_column, input_color_theme):
-    aggregate = input_df.groupby(["txn_date", 'state_code'], as_index=False).agg({'revenue': 'mean'})
+def make_choropleth(input_df, grp_1, grp_2, input_id, input_column, input_color_theme):
+    aggregate = input_df.groupby([grp_1, grp_2, input_id], as_index=False).agg({'revenue': 'mean'})
     avg_revenue = aggregate['revenue']
     choropleth = px.choropleth(aggregate, locations=input_id, color=avg_revenue, locationmode="USA-states",
                                color_continuous_scale=input_color_theme,
@@ -239,11 +242,11 @@ def _color_arrow(val):
 col = st.columns((1.5, 4.5, 2), gap='medium')
 
 with col[0]:
-    st.markdown('#### Daily quantity change by location')
+    st.markdown('#### Monthly quantity change by location')
 
-   #  mm = mm_name[selected_month] 
-   #  subset = daily_pct_change.query("(year == @selected_year) & (month == @mm)  & (dow == @selected_day)").reset_index(drop=True)
-    subset = daily_pct_change.query("txn_date == @selected_date").reset_index(drop=True)
+    mm = mm_name[selected_month] 
+    subset = daily_pct_change.query("(year == @selected_year) & (month == @mm)").reset_index(drop=True)
+    # subset = daily_pct_change.query("txn_date == @selected_date").reset_index(drop=True)
 
     if subset.shape[0] == 0:
         st.text("No data for the period")
@@ -259,15 +262,16 @@ with col[0]:
 
 with col[1]:
    st.markdown('#### Average revenue')
-   choropleth = make_choropleth(mv_txn_prod, 'state_code', 'revenue', selected_color_theme)
+   choropleth = make_choropleth(mv_txn_prod, 'year', 'month', 'state_code', 'revenue', selected_color_theme)
    st.plotly_chart(choropleth, use_container_width=True)
-   heatmap = make_heatmap(mv_txn_prod, 'txn_date', 'location', 'revenue', selected_color_theme)
+   heatmap = make_heatmap(mv_txn_prod, 'year', 'month_name', 'location', 'revenue', selected_color_theme)
    st.altair_chart(heatmap, use_container_width=True)
 
 with col[2]:
     st.markdown('#### Top location by category')
 
-    subset = aggregated_revenue.query("txn_date == @selected_date").reset_index(drop=True)
+    subset = aggregated_revenue.query("(year == @selected_year) & (month == @mm)").reset_index(drop=True)
+    # subset = aggregated_revenue.query("txn_date == @selected_date").reset_index(drop=True)
 
     if subset.shape[0] == 0:
         st.write("No data for the period")
