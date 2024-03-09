@@ -4,6 +4,7 @@ to pubslish and subscribe from pubsublite and write
 it to BQ
 """
 import subprocess
+import os
 from airflow import DAG
 from airflow.models import BaseOperator
 from airflow.utils.trigger_rule import TriggerRule
@@ -38,6 +39,7 @@ from airflow.operators.dummy import (
 )
 from google.api_core.exceptions import NotFound
 from google.cloud import bigquery, storage
+from google.cloud.storage import Client, transfer_manager
 from pathlib import Path
 import json
 from mock_data_scripts.generate_mock_stream_data import run_pipeline
@@ -57,15 +59,16 @@ jars = [f"gs://{BUCKET_NAME}/jars/pubsublite-spark-sql-streaming-1.0.0-with-depe
 
 pyspark_producer_main_path = f"gs://{BUCKET_NAME}/pyspark_scripts/pubsublite_pyspark_stream_producer.py"
 pyspark_consumer_main_path = f"gs://{BUCKET_NAME}/pyspark_scripts/pubsublite_pyspark_stream_consumer.py"
-config_files = [
-    f"gs://{BUCKET_NAME}/config_data/gcp_config_parameters.py",
-    f"gs://{BUCKET_NAME}/config_data/pubsublite_config.py",
-]
+config_files = [f"gs://{BUCKET_NAME}/config_data/"]
+# [
+#     f"gs://{BUCKET_NAME}/config_data/gcp_config_parameters.py",
+#     f"gs://{BUCKET_NAME}/config_data/pubsublite_config.py",
+# ]
 
 def read_cluster_config(**kwargs):
     cfg_path = parent_path = Path(__file__).resolve().parent
     try:
-        with open(f"{cfg_path}/dataproc_cluster_config.json", "r") as f:
+        with open(f"{cfg_path}/config_data/dataproc_cluster_config.json", "r") as f:
             cluster_configs = json.load(f)
     except Exception as e:
         raise Exception(f"Dataproc config file missing")
@@ -82,6 +85,56 @@ def check_dataproc_cluster(**kwargs):
     except NotFound:
         return 'create_cluster'
     return 'cluster_running' 
+
+base_path = Path(__file__).resolve().parent
+config_file_path = f'{base_path}/config_data'
+pyspark_file_path = f'{base_path}/pyspark_scripts'
+jar_file_path = f'{base_path}/jars'
+
+
+class UploadLocalFolderToGCS(BaseOperator):
+    """
+    Custom operator to upload directories to GCS.
+    """
+
+    @apply_defaults
+    def __init__(self, project_id, bucket_name, src, exclude='', **kwargs):
+        super().__init__(**kwargs)
+        self.project_id = project_id
+        self.bucket_name = bucket_name
+        self.src = src
+        self.exclude = exclude,
+        self.workers = 2
+
+    def execute(self, context):
+        """
+        Upload files concurrently
+        """
+        storage_client = storage.Client(project=self.project_id)
+
+        try:
+            # Attempt to get the bucket; if NotFound exception is raised, the bucket doesn't exist
+            bucket = storage_client.bucket(self.bucket_name)
+            for file in os.listdir(self.src):
+                destination_filename = self.src.split("/")[-1]
+                if not file.startswith(self.exclude):
+                    blob = bucket.blob(f"{destination_filename}/{file}")
+                    blob.upload_from_filename(os.path.join(self.src, file))
+                    self.log.info(f"File {file} uploaded to {destination_filename}.")
+            # filenames = [file if file.startswith(self.prefix) else file for file in os.listdir(self.src) ]
+            # results = transfer_manager.upload_many_from_filenames(
+            #             self.bucket_name, filenames, source_directory=self.src, max_workers=self.workers
+            # )
+            # for name, result in zip(filenames, results):
+            #     # The results list is either `None` or an exception for each filename in
+            #     # the input list, in order.
+            #     if isinstance(result, Exception):
+            #         self.log.info("Failed to upload {} due to exception: {}".format(name, result))
+            #     else:
+            #         self.log.info("Uploaded {} to {}.".format(name, bucket.name))
+        except NotFound:
+            self.log.info(f"Bucket '{self.bucket_name}' not found.")
+            raise NotFound(f"Bucket '{self.bucket_name}' not found.")
 
 
 default_args = {
@@ -106,10 +159,43 @@ dag = DAG(
 
 run_date = "{{ dag_run.conf['execution_date'] if dag_run and dag_run.conf and 'execution_date' in dag_run.conf else ds_nodash }}"
 
-# load_config_files = LocalFilesystemToGCSOperator(
+# load_config_files = BashOperator(
 #     task_id="load_config_files",
-#     src=
+#     bash_command = f"gsutil cp -r {config_file_path} gs://{BUCKET_NAME}/",
+#     dag=dag
 # )
+load_config_files = UploadLocalFolderToGCS(
+    task_id="load_config_files",
+    project_id=PROJECT_ID,
+    bucket_name=BUCKET_NAME,
+    src=config_file_path,
+    exclude="__"
+)
+
+# load_jar_files = BashOperator(
+#     task_id="load_jar_files",
+#     bash_command = f"gsutil cp -r {jar_file_path} gs://{BUCKET_NAME}/",
+#     dag=dag
+# )
+load_jar_files = UploadLocalFolderToGCS(
+    task_id="load_jar_files",
+    project_id=PROJECT_ID,
+    bucket_name=BUCKET_NAME,
+    src=jar_file_path
+)
+
+# load_pyspark_files = BashOperator(
+#     task_id="load_pyspark_files",
+#     bash_command = f"gsutil cp -r {pyspark_file_path} gs://{BUCKET_NAME}/pyspark_scripts/",
+#     dag=dag
+# )
+load_pyspark_files = UploadLocalFolderToGCS(
+    task_id="load_pyspark_files",
+    project_id=PROJECT_ID,
+    bucket_name=BUCKET_NAME,
+    src=pyspark_file_path,
+    exclude="__"
+)
 
 
 generate_stream_data = PythonOperator(
@@ -192,7 +278,7 @@ delete_cluster = DataprocDeleteClusterOperator(
     dag=dag
 )
 
-generate_stream_data >> load_cluster_config >> check_cluster_task >> [cluster_running, create_cluster]
+[load_config_files, load_pyspark_files, load_jar_files] >> generate_stream_data >> load_cluster_config >> check_cluster_task >> [cluster_running, create_cluster]
 [cluster_running, create_cluster] >> one_success >> [consumer_job, producer_job]
 [consumer_job, producer_job] >> all_success >> delete_cluster
 

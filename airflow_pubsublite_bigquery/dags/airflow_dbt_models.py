@@ -44,7 +44,7 @@ run_dbt_deps = BashOperator(
 
 build_stg_and_fact_tbls = BashOperator(
     task_id="build_stg_and_fact_tbls",
-    bash_command="dbt build",
+    bash_command="dbt build --full-refresh",
     cwd=DBT_CWD,
     dag=dag
 )
