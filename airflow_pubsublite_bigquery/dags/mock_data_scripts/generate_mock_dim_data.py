@@ -13,7 +13,7 @@ import sys
 from mock_data_scripts.mock_data_schema import *
 from google.cloud import storage
 from io import StringIO
-from gcp_config_parameters import *
+from config_data.gcp_config_parameters import *
 # from airflow.models import Variable
 
 num_examples = 1_000

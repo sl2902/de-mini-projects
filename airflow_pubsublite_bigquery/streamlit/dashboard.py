@@ -11,7 +11,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 # Append the 'project_root' directory to the Python path
 project_root = os.path.abspath(os.path.join(current_dir, '..'))
 sys.path.append(project_root)
-from dags.gcp_config_parameters import *
+from dags.config_data.gcp_config_parameters import *
 
 page_title = "US Retail dashboard"
 alt.themes.enable("dark")

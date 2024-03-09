@@ -14,7 +14,7 @@ from io import StringIO
 # from airflow.models import Variable
 from pathlib import Path
 from time import time
-from gcp_config_parameters import *
+from config_data.gcp_config_parameters import *
 
 # gcp_info = Variable.get("gcp_info", deserialize_json=True)
 bucket = BUCKET_NAME

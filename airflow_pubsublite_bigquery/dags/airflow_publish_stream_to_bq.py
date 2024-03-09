@@ -16,6 +16,9 @@ from airflow.operators.bash_operator import (
 # from airflow.contrib.operators.spark_submit_operator import(
 #     SparkSubmitOperator
 # )
+from airflow.providers.google.cloud.transfers.local_to_gcs import (
+    LocalFilesystemToGCSOperator
+)
 from airflow.providers.google.cloud.hooks.dataproc import (
     DataprocHook
 )
@@ -38,8 +41,8 @@ from google.cloud import bigquery, storage
 from pathlib import Path
 import json
 from mock_data_scripts.generate_mock_stream_data import run_pipeline
-from gcp_config_parameters import *
-from pubsublite_config import *
+from config_data.gcp_config_parameters import *
+from config_data.pubsublite_config import *
 
 # gcp_info = Variable.get("gcp_info", deserialize_json=True)
 # pubsub_info = Variable.get("pubsublite_info", deserialize_json=True)
@@ -102,6 +105,11 @@ dag = DAG(
 
 
 run_date = "{{ dag_run.conf['execution_date'] if dag_run and dag_run.conf and 'execution_date' in dag_run.conf else ds_nodash }}"
+
+# load_config_files = LocalFilesystemToGCSOperator(
+#     task_id="load_config_files",
+#     src=
+# )
 
 
 generate_stream_data = PythonOperator(

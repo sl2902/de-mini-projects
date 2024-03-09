@@ -46,7 +46,7 @@ from google.cloud.pubsublite.types import (
     TopicPath,
 )
 from google.protobuf.duration_pb2 import Duration
-from pubsublite_config import *
+from config_data.pubsublite_config import *
 
 # pubsub_info = Variable.get("pubsublite_info", deserialize_json=True)
 

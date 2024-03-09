@@ -37,7 +37,7 @@ from airflow.operators.dummy import (
 from google.api_core.exceptions import NotFound
 from google.cloud import bigquery, storage
 from mock_data_scripts.generate_mock_dim_data import run_pipeline
-from gcp_config_parameters import *
+from config_data.gcp_config_parameters import *
 
 # gcp_info = Variable.get("gcp_info", deserialize_json=True)
 bucket_folder = "generated_data"

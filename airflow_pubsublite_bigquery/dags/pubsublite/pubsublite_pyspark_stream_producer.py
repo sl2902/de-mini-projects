@@ -6,8 +6,8 @@ import os
 import uuid
 from google.cloud import bigquery
 from google.api_core.exceptions import AlreadyExists, Conflict
-from gcp_config_parameters import *
-from pubsublite_config import *
+from config_data.gcp_config_parameters import *
+from config_data.pubsublite_config import *
 
 location = cloud_region
 inv_topic_id = inv_topic_id
