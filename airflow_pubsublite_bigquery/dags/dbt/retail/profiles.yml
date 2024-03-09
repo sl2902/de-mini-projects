@@ -1,0 +1,14 @@
+retail:
+  outputs:
+    dev:
+      dataset: dbt_retail
+      job_execution_timeout_seconds: 300
+      job_retries: 1
+      location: US
+      keyfile: /opt/airflow/personal-gcp.json
+      method: service-account
+      priority: interactive
+      project: hive-413217
+      threads: 4
+      type: bigquery
+  target: dev
