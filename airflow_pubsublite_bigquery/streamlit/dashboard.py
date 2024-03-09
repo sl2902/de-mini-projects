@@ -9,7 +9,7 @@ import json
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Append the 'project_root' directory to the Python path
-project_root = os.path.abspath(os.path.join(current_dir, ".."))
+project_root = os.path.abspath(os.path.join(current_dir, '..'))
 sys.path.append(project_root)
 from dags.gcp_config_parameters import *
 
@@ -136,7 +136,7 @@ mv_txn_prod = prepare_txn_query("""
                      `{project_number}.{bq_dataset}.{mv}`
                   ORDER BY
                      timestamp, transaction_id
-                  """.format(project_number=project_number, bq_dataset=DATASET, mv="mv_retail_transactions")
+                  """.format(project_number=PROJECT_ID, bq_dataset=DBT_DATASET, mv="mv_retail_transactions")
 )
 
 # prod_df = pd.DataFrame(products)
