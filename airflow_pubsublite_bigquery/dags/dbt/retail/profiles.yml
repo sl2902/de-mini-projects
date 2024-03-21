@@ -4,11 +4,11 @@ retail:
       dataset: dbt_retail
       job_execution_timeout_seconds: 300
       job_retries: 1
-      location: US
-      keyfile: /opt/airflow/personal-gcp.json
+      location: "{{ env_var('GCP_LOCATION') }}"
+      keyfile: "{{ env_var('GOOGLE_APPLICATION_CREDENTIALS') }}"
       method: service-account
       priority: interactive
-      project: hive-413217
+      project: "{{ env_var('GCP_PROJECT_ID') }}"
       threads: 4
       type: bigquery
   target: dev

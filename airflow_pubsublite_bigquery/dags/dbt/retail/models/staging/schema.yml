@@ -2,15 +2,15 @@ version: 2
 
 sources:
   - name: staging
-    database: hive-413217
+    database: "{{ env_var('GCP_PROJECT_ID') }}"
      # For postgres:
       #database: production
     schema: retail_2
 
     tables:
       - name: transactions
-      - name: product_2
-      - name: store_2
+      - name: product
+      - name: store
 
 models:
     - name: transactions
