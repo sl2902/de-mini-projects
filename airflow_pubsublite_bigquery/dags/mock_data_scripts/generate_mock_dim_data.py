@@ -14,17 +14,20 @@ from mock_data_scripts.mock_data_schema import *
 from google.cloud import storage
 from io import StringIO
 from config_data.gcp_config_parameters import *
+from dotenv import load_dotenv
 # from airflow.models import Variable
+load_dotenv()
 
-num_examples = 1_000
-num_products = 50
-num_stores = 10
+num_prod_examples = int(os.getenv('num_prod_examples', 1000))
+num_store_examples = int(os.getenv('num_store_examples', 500))
+# num_products = int(os.getenv('num_products', 50))
+# num_stores = int(os.getenv('num_stores', 10))
 prod_id_count = 0
 supplier_id_count = 0
 store_id_count = 0
 
 bucket = BUCKET_NAME
-dim_filepath = f"generated_data"
+dim_filepath = os.getenv('mock_data_subfolder')
 dim_prod_file_path = f"{dim_filepath}/dim_products.json"
 dim_store_file_path = f"{dim_filepath}/dim_stores.json"
 
@@ -60,7 +63,7 @@ def create_bucket(bucket_name: str=bucket):
     )
     return new_bucket
 
-def upload_blob_from_file(bucket_name, destination_blob_name, func, num_examples: int=num_examples):
+def upload_blob_from_file(bucket_name, destination_blob_name, func, num_examples):
     """Uploads json blob in memory to the bucket."""
 
     # The ID of your GCS bucket
@@ -120,9 +123,9 @@ def generate_stores():
 def run_pipeline():
     # generate_products()
     # generate_stores()
-    upload_blob_from_file(bucket, dim_prod_file_path, generate_products)
+    upload_blob_from_file(bucket, dim_prod_file_path, generate_products, num_examples=num_prod_examples)
     print("Uploaded dim products")
-    upload_blob_from_file(bucket, dim_store_file_path, generate_stores, num_examples=500)
+    upload_blob_from_file(bucket, dim_store_file_path, generate_stores, num_examples=num_store_examples)
     print("Uploaded dim stores")
 
 

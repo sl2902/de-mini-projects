@@ -15,18 +15,20 @@ from io import StringIO
 from pathlib import Path
 from time import time
 from config_data.gcp_config_parameters import *
+from dotenv import load_dotenv
+load_dotenv()
 
 # gcp_info = Variable.get("gcp_info", deserialize_json=True)
 bucket = BUCKET_NAME
-dim_filepath = "generated_data"
+dim_filepath = os.getenv("mock_data_subfolder")
 dim_prod_file_path = f"{dim_filepath}/dim_products.json"
 dim_store_file_path = f"{dim_filepath}/dim_stores.json"
-stream_filepath = "stream_data"
+stream_filepath = os.getenv('stream_data_subfolder')
 stream_prod_file_path = f"{stream_filepath}/transactions/transactions.json"
 stream_store_file_path = f"{stream_filepath}/inventories/inventories.json"
 parent_path = Path(__file__).resolve().parent
 # txn_update_file = f"{parent_path}/config/transaction_stream_update.json"
-config_filepath = "config_data"
+config_filepath = os.getenv('config_data_subfolder')
 txn_update_file = f"{config_filepath}/transaction_stream_update.json"
 
 
