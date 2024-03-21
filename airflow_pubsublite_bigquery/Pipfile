@@ -11,6 +11,8 @@ plotly = "*"
 google-cloud-bigquery = "*"
 db-dtypes = "*"
 google-cloud = "==0.34.0"
+google-cloud-storage = "*"
+python-dotenv = "*"
 
 [dev-packages]
 
