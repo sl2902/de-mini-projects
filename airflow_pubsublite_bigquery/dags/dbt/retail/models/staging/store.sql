@@ -9,7 +9,7 @@ with base as (
         size,
         manager
     FROM
-       {{ source('staging', 'store_2') }}
+       {{ source('staging', 'store') }}
 )
 
 SELECT

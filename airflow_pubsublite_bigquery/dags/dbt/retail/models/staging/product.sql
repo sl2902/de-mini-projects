@@ -10,7 +10,7 @@ with base as (
         base_price,
         supplier_id
     FROM
-       {{ source('staging', 'product_2') }}
+       {{ source('staging', 'product') }}
 )
 
 SELECT
