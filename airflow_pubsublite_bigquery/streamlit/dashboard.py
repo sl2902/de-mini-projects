@@ -6,12 +6,16 @@ from google.oauth2 import service_account
 from google.cloud import bigquery
 import os, sys
 import json
+from dotenv import load_dotenv
+
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Append the 'project_root' directory to the Python path
 project_root = os.path.abspath(os.path.join(current_dir, '..'))
 sys.path.append(project_root)
 from dags.config_data.gcp_config_parameters import *
+
+# load_dotenv(f"{project_root}/.env")
 
 page_title = "US Retail dashboard"
 alt.themes.enable("dark")
@@ -163,7 +167,7 @@ with st.sidebar:
     selected_year = st.selectbox('Select a year', year_list)
     selected_month = st.selectbox('Select a month', sorted(month_list, key=lambda x: mm_name[x]))
    #  selected_day = st.selectbox('Select a day of week', list(dow.keys()))
-    selected_date = st.date_input("Select a date")
+    # selected_date = st.date_input("Select a date")
     color_theme_list = ['blues', 'cividis', 'greens', 'inferno', 'magma', 'plasma', 'reds', 'rainbow', 'turbo', 'viridis']
     selected_color_theme = st.selectbox('Select a color theme', color_theme_list)
     mv_txn_prod["txn_date"] = pd.to_datetime(mv_txn_prod["txn_date"], format="%Y-%m-%d")
