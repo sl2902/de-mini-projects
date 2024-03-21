@@ -8,6 +8,9 @@ from google.cloud import bigquery
 from google.api_core.exceptions import AlreadyExists, Conflict
 from config_data.gcp_config_parameters import *
 from config_data.pubsublite_config import *
+# from dotenv import load_dotenv
+
+# load_dotenv()
 
 
 location = cloud_region
@@ -28,15 +31,17 @@ packages = ",".join([
                   #  "com.google.cloud.bigdataoss:gcs-connector:hadoop3-2.2.9"
                      ])
 jars = "gs://spark-lib/bigquery/spark-3.3-bigquery-0.36.1.jar"
-spark = SparkSession \
-        .builder\
-        .appName("Retail")\
-        .master("local[*]")\
-        .enableHiveSupport()\
-        .config("spark.sql.shuffle.partitions", "2")\
-        .config("spark.streaming.stopGracefullyOnShutdown", "true")\
-        .config("spark.jars.packages", packages)\
-        .getOrCreate()
+spark = (
+            SparkSession 
+                .builder
+                .appName("Retail")
+                # .master("local[*]")
+                .enableHiveSupport()
+                .config("spark.sql.shuffle.partitions", "2")
+                .config("spark.streaming.stopGracefullyOnShutdown", "true")
+                .config("spark.jars.packages", packages)
+                .getOrCreate()
+)
 
 # Setup hadoop fs configuration for schema gs://
 conf = spark.sparkContext._jsc.hadoopConfiguration()
