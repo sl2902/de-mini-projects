@@ -176,7 +176,8 @@ stores = {
     # "name": ["Tech Haven", "Fashion Fusion", "Home Harmony", "Book Bliss", "Adventure Outpost",
     #                        "Gadget Galaxy", "Chic Boutique", "Kitchen Kingdom", "Page Turner Emporium", "Outdoor Oasis"],
     "location": ["New York, NY", "Los Angeles, CA", "Chicago, IL", "Houston, TX", "Miami, FL",
-              "Seattle, WA", "Atlanta, GA", "Denver, CO", "Boston, MA", "San Francisco, CA"],
+              "Seattle, WA", "Atlanta, GA", "Denver, CO", "Boston, MA", "San Francisco, CA",
+              "Bridgeport, CT", "Salt Lake City, UT"],
     "size": list(range(10000, 60000, 5000)),
     "manager": ["John Doe", "Jane Smith", "Michael Johnson", "Emily Davis", "Christopher Brown",
             "Jessica Wilson", "Andrew Martinez", "Melissa Taylor", "Kevin Garcia", "Laura Miller"]
