@@ -28,7 +28,7 @@ load_dotenv()
 base_path = Path(__file__).resolve().parent
 env_path = Path(__file__).resolve().parent.parent
 env_file_path = f'{env_path}/.env'
-dst_env_file_path = f"gs://{BUCKET_NAME}/{os.getenv('config_data_subfolder')}/"
+dst_env_file_path = f"{os.getenv('config_data_subfolder')}/.env"
 config_file_path = f'{base_path}/config_data'
 pyspark_file_path = f'{base_path}/pyspark_scripts'
 jar_file_path = f'{base_path}/jars'
@@ -90,13 +90,13 @@ dag = DAG(
 
 run_date = "{{ dag_run.conf['execution_date'] if dag_run and dag_run.conf and 'execution_date' in dag_run.conf else ds_nodash }}"
 
-# load_env_file = LocalFilesystemToGCSOperator(
-#     task_id="load_env_file",
-#     src=env_file_path,
-#     dst=dst_env_file_path,
-#     bucket=BUCKET_NAME,
-#     dag=dag
-# )
+load_env_file = LocalFilesystemToGCSOperator(
+    task_id="load_env_file",
+    src=env_file_path,
+    dst=dst_env_file_path,
+    bucket=BUCKET_NAME,
+    dag=dag
+)
 
 load_config_files = UploadLocalFolderToGCS(
     task_id="load_config_files",
@@ -125,4 +125,4 @@ load_pyspark_files = UploadLocalFolderToGCS(
     dag=dag
 )
 
-[load_config_files, load_jar_files, load_pyspark_files]
+[load_env_file, load_config_files, load_jar_files, load_pyspark_files]
