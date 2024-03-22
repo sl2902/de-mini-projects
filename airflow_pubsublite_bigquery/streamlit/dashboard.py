@@ -15,7 +15,7 @@ project_root = os.path.abspath(os.path.join(current_dir, '..'))
 sys.path.append(project_root)
 from dags.config_data.gcp_config_parameters import *
 
-# load_dotenv(f"{project_root}/.env")
+load_dotenv(f"{project_root}/.env")
 
 page_title = "US Retail dashboard"
 alt.themes.enable("dark")
@@ -52,14 +52,21 @@ mm_name = {
 }
 
 # credentials = service_account.Credentials.from_service_account_info(
-#     json.load(open('/Users/home/Documents/secrets/personal-gcp.json'))
+#     json.load(open(os.getenv('HOST_GOOGLE_APPLICATION_CREDENTIALS')))
 # )
 
-credentials = service_account.Credentials.from_service_account_info(
-    st.secrets["gcp_service_account"]
+try:
+    credentials = service_account.Credentials.from_service_account_info(
+        st.secrets["gcp_service_account"]
+)
+except:
+    credentials = service_account.Credentials.from_service_account_info(
+    json.load(open(os.getenv('HOST_GOOGLE_APPLICATION_CREDENTIALS')))
 )
 
+
 client = bigquery.Client(credentials=credentials)
+print(credentials.project_id)
 
 @st.cache_data(ttl=600)
 def prepare_txn_query(query):
@@ -140,7 +147,7 @@ mv_txn_prod = prepare_txn_query("""
                      `{project_number}.{bq_dataset}.{mv}`
                   ORDER BY
                      timestamp, transaction_id
-                  """.format(project_number=PROJECT_ID, bq_dataset=DBT_DATASET, mv="mv_retail_transactions")
+                  """.format(project_number=credentials.project_id, bq_dataset=DBT_DATASET, mv="mv_retail_transactions")
 )
 
 # prod_df = pd.DataFrame(products)
