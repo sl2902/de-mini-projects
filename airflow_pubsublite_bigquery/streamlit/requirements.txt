@@ -4,3 +4,4 @@ altair
 plotly
 google-cloud-bigquery
 db_dtypes
+python-dotenv
