@@ -49,9 +49,9 @@ dag_run_setup_pubsublite_infra: ## Setup Pubsublite infra
 dag_chk_status_setup_pubsublite_infra: ## Check status of dag - Setup Pubsublite infra
 	@docker compose run airflow-cli airflow dags list-runs -d setup_pubsublite_infra | head -3
 
-dag_run_publish_stream_to_bq: ## Start producer and consumer and publish stream to BQ
+dag_run_publish_stream_to_bq: ## Start producer and consumer and publish stream to BQ; the first run is to produce historical data
 	@docker compose run airflow-cli airflow dags unpause publish_stream_to_bq
-	@docker compose run airflow-cli airflow dags trigger publish_stream_to_bq
+	@docker compose run airflow-cli airflow dags trigger publish_stream_to_bq --conf '{"units": "minutes"}'
 	@docker compose run airflow-cli airflow dags list-runs -d publish_stream_to_bq --state running
 
 dag_chk_status_publish_stream_to_bq: ## Check status of dag - Start producer and consumer and publish stream to BQ
@@ -65,6 +65,14 @@ dag_run_build_dbt_model: ## Run dbt model
 make dag_chk_status_build_dbt_model: ## Check status of dag - Run dbt model
 	@docker compose run airflow-cli airflow dags list-runs -d build_dbt_model | head -3
 
+dag_run_publish_stream_to_bq_sec: ## Start producer and consumer and publish stream to BQ; the subsequent run is for a short duration
+	@docker compose run airflow-cli airflow dags unpause publish_stream_to_bq
+	@docker compose run airflow-cli airflow dags trigger publish_stream_to_bq
+	@docker compose run airflow-cli airflow dags list-runs -d publish_stream_to_bq --state running
+
+dag_run_publish_stream_to_bq_sec: ## Check status of dag - Start producer and consumer and publish stream to BQ
+	@docker compose run airflow-cli airflow dags list-runs -d publish_stream_to_bq | head -3
+
 run_streamlit: ## Start Streamlit dashboard
 	@streamlit run streamlit/dashboard.py
 
@@ -76,4 +84,4 @@ docker_clean: ## Clean Docker environment
 	@docker-compose down --rmi=all
 
 help: ## Help
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-45s\033[0m %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(filter-out .env, $(MAKEFILE_LIST)) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-45s\033[0m %s\n", $$1, $$2}'
