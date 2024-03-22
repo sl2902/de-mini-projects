@@ -51,10 +51,6 @@ mm_name = {
     "December": 12
 }
 
-# credentials = service_account.Credentials.from_service_account_info(
-#     json.load(open(os.getenv('HOST_GOOGLE_APPLICATION_CREDENTIALS')))
-# )
-
 try:
     credentials = service_account.Credentials.from_service_account_info(
         st.secrets["gcp_service_account"]
@@ -66,7 +62,6 @@ except:
 
 
 client = bigquery.Client(credentials=credentials)
-print(credentials.project_id)
 
 @st.cache_data(ttl=600)
 def prepare_txn_query(query):
