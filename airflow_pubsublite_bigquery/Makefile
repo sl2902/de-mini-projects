@@ -19,6 +19,13 @@ docker_stop: ## Stop Airflow pipeline environment
 dag_list: ## List DAGs
 	@docker-compose run airflow-cli airflow dags list
 
+dag_clear_all_jobs: ## Clear all dags
+	@docker-compose run airflow-cli airflow tasks clear upload_config_files_to_gcs
+	@docker-compose run airflow-cli airflow tasks clear load_mock_dim_data_bq
+	@docker-compose run airflow-cli airflow tasks clear setup_pubsublite_infra
+	@docker-compose run airflow-cli airflow tasks clear build_dbt_model
+	@docker-compose run airflow-cli airflow tasks clear publish_stream_to_bq
+
 add_gcp_service_account_airflow: ## Add GCP service account to Airflow connection
 	@docker compose run airflow-cli airflow connections add $(GOOGLE_CONN_ID) \
     	--conn-type=google_cloud_platform \
@@ -51,7 +58,7 @@ dag_chk_status_setup_pubsublite_infra: ## Check status of dag - Setup Pubsublite
 
 dag_run_publish_stream_to_bq: ## Start producer and consumer and publish stream to BQ; the first run is to produce historical data
 	@docker compose run airflow-cli airflow dags unpause publish_stream_to_bq
-	@docker compose run airflow-cli airflow dags trigger publish_stream_to_bq --conf '{"units": "minutes"}'
+	@docker compose run airflow-cli airflow dags trigger publish_stream_to_bq --conf '{"units": "minutes", "duration": 30}'
 	@docker compose run airflow-cli airflow dags list-runs -d publish_stream_to_bq --state running
 
 dag_chk_status_publish_stream_to_bq: ## Check status of dag - Start producer and consumer and publish stream to BQ
@@ -70,7 +77,7 @@ dag_run_publish_stream_to_bq_sec: ## Start producer and consumer and publish str
 	@docker compose run airflow-cli airflow dags trigger publish_stream_to_bq
 	@docker compose run airflow-cli airflow dags list-runs -d publish_stream_to_bq --state running
 
-dag_run_publish_stream_to_bq_sec: ## Check status of dag - Start producer and consumer and publish stream to BQ
+dag_chk_status_publish_stream_to_bq_sec: ## Check status of dag - Start producer and consumer and publish stream to BQ
 	@docker compose run airflow-cli airflow dags list-runs -d publish_stream_to_bq | head -3
 
 run_streamlit: ## Start Streamlit dashboard
