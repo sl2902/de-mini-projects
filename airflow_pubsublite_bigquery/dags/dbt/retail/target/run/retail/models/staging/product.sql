@@ -19,7 +19,7 @@ with base as (
         base_price,
         supplier_id
     FROM
-       `hive-413217`.`retail_2`.`product_2`
+       `hive-413217`.`retail_2`.`product`
 )
 
 SELECT

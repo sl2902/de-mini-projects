@@ -1,4 +1,13 @@
 
+        
+
+    
+
+    
+
+    
+    drop materialized view if exists `hive-413217`.`dbt_retail`.`mv_retail_transactions`
+;
         create materialized view if not exists `hive-413217`.`dbt_retail`.`mv_retail_transactions`
     
     

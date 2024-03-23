@@ -18,7 +18,7 @@ with base as (
         size,
         manager
     FROM
-       `hive-413217`.`retail_2`.`store_2`
+       `hive-413217`.`retail_2`.`store`
 )
 
 SELECT
