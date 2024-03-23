@@ -200,11 +200,13 @@ run_date = "{{ dag_run.conf['execution_date'] if dag_run and dag_run.conf and 'e
 #     exclude="__"
 # )
 
-
+units = "{{ dag_run.conf['units'] if dag_run and dag_run.conf and 'units' in dag_run.conf else 'seconds' }}"
+duration = "{{ dag_run.conf['duration'] if dag_run and dag_run.conf and 'duration' in dag_run.conf else 15 }}"
 generate_stream_data = PythonOperator(
     task_id="generate_stream_data",
     python_callable=run_pipeline,
     provide_context=True,
+    op_args=[f"{units}", f"{duration}"],
     dag=dag
 )
 
