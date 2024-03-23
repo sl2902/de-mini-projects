@@ -14,9 +14,12 @@ from io import StringIO
 # from airflow.models import Variable
 from pathlib import Path
 from time import time
+import argparse
 from config_data.gcp_config_parameters import *
 from dotenv import load_dotenv
+import logging
 load_dotenv()
+logger = logging.getLogger("airflow.task")
 
 # gcp_info = Variable.get("gcp_info", deserialize_json=True)
 bucket = BUCKET_NAME
@@ -92,12 +95,17 @@ def generate_inventory_stream(product_id: str, store_id: str, qty_change: int, i
 
 def generate_random_timestamp(
         start_date: str,
-        min_minutes: int = 30,
-        max_minutes: int = 90
+        units: str,
+        _min: int = 5,
+        _max: int = 10
 ):
     # max_minutes = (datetime.strptime(end_date, "%Y-%m-%d %H:%M:%S") - datetime.strptime(start_date, "%Y-%m-%d %H:%M:%S")).total_seconds() // 60
     start_date = datetime.strptime(start_date, "%Y-%m-%d %H:%M:%S")
-    start_date += timedelta(minutes=np.random.randint(min_minutes, max_minutes))
+    if units == "seconds":
+        start_date += timedelta(seconds=np.random.randint(_min, _max))
+    else:
+        _min, _max = _min * 60, _max * 60
+        start_date += timedelta(seconds=np.random.randint(_min, _max))
     return start_date
 
 def recent_file_handle_gcs(bucket_name, file_path):
@@ -142,7 +150,8 @@ def close_fh():
     if recent_fh:
         recent_fh.close()
 
-def run_pipeline():
+def run_pipeline(units: str, duration: int):
+    logger.info(f'arg units value {units}, duration {duration}')
     dim_prod_df = pd.DataFrame([json.loads(line) 
                    for line in read_dim_file(bucket, dim_prod_file_path).splitlines()])
     dim_store_df = pd.DataFrame([json.loads(line) 
@@ -158,8 +167,16 @@ def run_pipeline():
     inventory_id = data["inventory_id"]
     last_update = data["last_update"]
     rec = {}
-    while  end_time - start_time < 30:
-        timestamp = generate_random_timestamp(last_update)
+    curr_date = datetime.now().replace(microsecond=0)
+    while  end_time - start_time < duration:
+        timestamp = generate_random_timestamp(last_update, units)
+
+        # filter future dated transactions
+        # current_date() - 1
+        if  (units == "minutes" and timestamp > curr_date - timedelta(days=1)) or \
+            (units == "seconds" and timestamp > curr_date): 
+                end_time = time()
+                continue
 
         dim_prod = generate_random_sample(dim_prod_df)
         dim_store = generate_random_sample(dim_store_df)
@@ -196,10 +213,21 @@ def run_pipeline():
     # close_fh()
 
 
-def main():
+def main(units, duration):
     if not list_bucket(bucket):
         create_bucket(bucket)
-    run_pipeline()
+    run_pipeline(units, duration)
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser('Generate mock transactions and inventories')
+    parser.add_argument('--units',
+               help="Enter the time unit for data granularity. The choice is between minutes and seconds",
+               default="seconds"
+    )
+    parser.add_argument('--duration',
+               help="Enter duration in seconds. This is the amount of time data will be generated for",
+               type=int,
+               default=2
+    )
+    args = parser.parse_args()
+    main(args.units, int(args.duration))
