@@ -1,3 +1,7 @@
+
+## High level architecture
+![High level architecture](assets/high_level_architecture.png)
+
 ## End to end data flow chart
 ![End to end dataflow](assets/end_to_end_dataflow.png)
 
