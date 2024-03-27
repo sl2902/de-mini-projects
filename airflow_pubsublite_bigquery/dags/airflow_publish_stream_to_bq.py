@@ -10,7 +10,7 @@ from airflow.models import BaseOperator
 from airflow.utils.trigger_rule import TriggerRule
 from airflow.utils.decorators import apply_defaults
 from airflow.models import Variable
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from airflow.operators.bash_operator import (
     BashOperator
 )
@@ -40,6 +40,10 @@ from airflow.operators.dummy import (
 )
 from airflow.operators.trigger_dagrun import (
     TriggerDagRunOperator
+)
+from airflow.sensors.external_task_sensor import (
+    ExternalTaskSensor,
+    ExternalTaskMarker
 )
 from google.api_core.exceptions import NotFound
 from google.cloud import bigquery, storage
@@ -151,6 +155,7 @@ default_args = {
     "retries": 1,
     "retry_delay": timedelta(minutes=1),
 }
+start_date = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
 dag = DAG(
     'publish_stream_to_bq',
     max_active_runs=1,
@@ -158,7 +163,7 @@ dag = DAG(
     default_args=default_args,
     description="Task generates streaming data for producer and consumer",
     schedule_interval="@daily",
-    start_date=datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
+    start_date=start_date,
     render_template_as_native_obj=True,
     tags=["dev"]
 )
@@ -205,7 +210,34 @@ run_date = "{{ dag_run.conf['execution_date'] if dag_run and dag_run.conf and 'e
 # )
 
 units = "{{ dag_run.conf['units'] if dag_run and dag_run.conf and 'units' in dag_run.conf else 'seconds' }}"
-duration = "{{ dag_run.conf['duration'] if dag_run and dag_run.conf and 'duration' in dag_run.conf else 15 }}"
+duration = "{{ dag_run.conf['duration'] if dag_run and dag_run.conf and 'duration' in dag_run.conf else 5 }}"
+
+# sense_load_mock_dim_data_to_bq = ExternalTaskSensor(
+#     task_id='sense_load_mock_dim_data_to_bq',
+#     external_dag_id='load_mock_dim_data_bq',
+#     external_task_id='all_success',
+#     start_date=start_date,
+#     mode='reschedule',
+#     timeout=3600,
+#     dag=dag
+# )
+
+# sense_setup_pubsublite_infra = ExternalTaskSensor(
+#     task_id='sense_setup_pubsublite_infra',
+#     external_dag_id='setup_pubsublite_infra',
+#     external_task_id='all_success',
+#     start_date=start_date,
+#     mode='reschedule',
+#     timeout=3600,
+#     dag=dag
+# )
+
+all_success_upstream = DummyOperator(
+        task_id='all_task_success_upstream',
+        dag=dag,
+        trigger_rule=TriggerRule.ALL_SUCCESS,
+    )
+
 generate_stream_data = PythonOperator(
     task_id="generate_stream_data",
     python_callable=run_pipeline,
@@ -312,8 +344,8 @@ trigger_build_dbt_model = TriggerDagRunOperator(
     dag=dag
 )
 
-all_success = DummyOperator(
-        task_id='all_task_success',
+all_success_downstream = DummyOperator(
+        task_id='all_task_success_downstream',
         dag=dag,
         trigger_rule=TriggerRule.ALL_SUCCESS,
     )
@@ -326,7 +358,8 @@ delete_cluster = DataprocDeleteClusterOperator(
     dag=dag
 )
 
-generate_stream_data >> load_cluster_config >> check_cluster_task >> [cluster_running, create_cluster]
+generate_stream_data >> load_cluster_config
+load_cluster_config >> check_cluster_task >> [cluster_running, create_cluster]
 [cluster_running, create_cluster] >> one_success >> [consumer_job, producer_job]
-[consumer_job, producer_job] >> all_success >> trigger_build_dbt_model >> delete_cluster
+[consumer_job, producer_job] >> all_success_downstream >> trigger_build_dbt_model >> delete_cluster
 
