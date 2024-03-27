@@ -15,6 +15,12 @@ from airflow.operators.python_operator import (
 from airflow.providers.google.cloud.transfers.local_to_gcs import (
     LocalFilesystemToGCSOperator
 )
+from airflow.operators.trigger_dagrun import (
+    TriggerDagRunOperator
+)
+from airflow.operators.dummy_operator import (
+    DummyOperator
+)
 from google.api_core.exceptions import NotFound
 from google.cloud import bigquery, storage
 from google.cloud.storage import Client, transfer_manager
@@ -32,6 +38,8 @@ dst_env_file_path = f"{os.getenv('config_data_subfolder')}/.env"
 config_file_path = f'{base_path}/config_data'
 pyspark_file_path = f'{base_path}/pyspark_scripts'
 jar_file_path = f'{base_path}/jars'
+pip_file_path = f'{base_path}/python/pip-install.sh'
+dst_pip_file_path = f"{os.getenv('python_data_subfolder')}/pip-install.sh"
 
 
 class UploadLocalFolderToGCS(BaseOperator):
@@ -75,10 +83,10 @@ default_args = {
     "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=1),
-    "catchup": False
 }
 dag = DAG(
     'upload_config_files_to_gcs',
+    catchup=False,
     default_args=default_args,
     description="Task uploads config files required by the pipeline",
     schedule_interval="@daily",
@@ -89,6 +97,25 @@ dag = DAG(
 
 
 run_date = "{{ dag_run.conf['execution_date'] if dag_run and dag_run.conf and 'execution_date' in dag_run.conf else ds_nodash }}"
+
+start_pipeline = DummyOperator(
+    task_id='start_pipeline',
+    dag=dag
+)
+
+trigger_setup_pubsublite_infra = TriggerDagRunOperator(
+    task_id="trigger_setup_pubsublite_infra",
+    trigger_dag_id="setup_pubsublite_infra",
+    dag=dag
+)
+
+load_pip_install_file = LocalFilesystemToGCSOperator(
+    task_id="load_pip_install_file",
+    src=pip_file_path,
+    dst=dst_pip_file_path,
+    bucket=BUCKET_NAME,
+    dag=dag
+)
 
 load_env_file = LocalFilesystemToGCSOperator(
     task_id="load_env_file",
@@ -125,4 +152,16 @@ load_pyspark_files = UploadLocalFolderToGCS(
     dag=dag
 )
 
-[load_env_file, load_config_files, load_jar_files, load_pyspark_files]
+all_success = DummyOperator(
+    task_id="all_success",
+    dag=dag,
+    trigger_rule=TriggerRule.ALL_SUCCESS
+)
+
+trigger_load_mock_dim_data_to_bq = TriggerDagRunOperator(
+    task_id="trigger_load_mock_dim_data_to_bq",
+    trigger_dag_id="load_mock_dim_data_bq",
+    dag=dag
+)
+
+start_pipeline >> trigger_setup_pubsublite_infra >> [load_pip_install_file, load_env_file, load_config_files, load_jar_files, load_pyspark_files] >> all_success >> trigger_load_mock_dim_data_to_bq

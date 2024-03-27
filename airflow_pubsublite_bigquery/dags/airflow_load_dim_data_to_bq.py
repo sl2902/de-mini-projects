@@ -34,6 +34,13 @@ from airflow.operators.python import (
 from airflow.operators.dummy import (
     DummyOperator
 )
+from airflow.sensors.external_task_sensor import (
+    ExternalTaskSensor,
+    ExternalTaskMarker
+)
+from airflow.operators.trigger_dagrun import (
+    TriggerDagRunOperator
+)
 from google.api_core.exceptions import NotFound
 from google.cloud import bigquery, storage
 from mock_data_scripts.generate_mock_dim_data import run_pipeline
@@ -164,6 +171,14 @@ create_bucket = GCSCreateBucketOperator(
     dag=dag
 )
 
+# sense_upload_config_files_to_gcs = ExternalTaskSensor(
+#     task_id='sense_upload_config_files_to_gcs',
+#     external_dag_id='upload_config_files_to_gcs',
+#     external_task_id='load_config_files',
+#     # start_date=datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
+#     # execution_delta=timedelta(hours=1)
+# )
+
 
 generate_mock_data = PythonOperator(
     task_id="generate_mock_data",
@@ -205,9 +220,23 @@ load_store_data_bq = GCSToBigQueryOperator(
     dag=dag,
 )
 
+all_success = DummyOperator(
+    task_id="all_success",
+    dag=dag,
+    trigger_rule=TriggerRule.ALL_SUCCESS
+)
+
+trigger_publish_stream_to_bq = TriggerDagRunOperator(
+    task_id="trigger_publish_stream_to_bq",
+    trigger_dag_id="publish_stream_to_bq",
+    dag=dag
+)
+
 
 
 # check_bucket_task >> [create_bucket, bucket_exists]
 # [create_bucket, bucket_exists] >> one_success 
+create_bucket
 create_bucket >> generate_mock_data
 generate_mock_data >> create_dataset >> [load_product_data_bq, load_store_data_bq]
+[load_product_data_bq, load_store_data_bq] >> all_success >> trigger_publish_stream_to_bq

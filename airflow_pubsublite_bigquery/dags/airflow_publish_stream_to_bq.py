@@ -38,6 +38,9 @@ from airflow.operators.python import (
 from airflow.operators.dummy import (
     DummyOperator
 )
+from airflow.operators.trigger_dagrun import (
+    TriggerDagRunOperator
+)
 from google.api_core.exceptions import NotFound
 from google.cloud import bigquery, storage
 from google.cloud.storage import Client, transfer_manager
@@ -147,10 +150,11 @@ default_args = {
     "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=1),
-    "catchup": False
 }
 dag = DAG(
     'publish_stream_to_bq',
+    max_active_runs=1,
+    catchup=False,
     default_args=default_args,
     description="Task generates streaming data for producer and consumer",
     schedule_interval="@daily",
@@ -238,8 +242,8 @@ one_success = DummyOperator(
 )
 
 # init_action_uris = "{{task_instance.xcom_pull(task_ids='load_cluster_config', key='cluster_configs')['INITIALIZATION_ACTIONS']}}"
-init_action_uris = "gs://goog-dataproc-initialization-actions-{REGION}/python/pip-install.sh"
-init_action_uris = [init_action_uris.format(REGION=REGION)]
+init_action_uris = [f"gs://{BUCKET_NAME}/{os.getenv('python_data_subfolder')}/pip-install.sh"]
+# init_action_uris = [init_action_uris.format(REGION=REGION)]
 # num_workers = "{{task_instance.xcom_pull(task_ids='load_cluster_config', key='cluster_configs')['CLUSTER_CONFIG']['worker_config']['num_instances']}}"
 # num_masters = "{{task_instance.xcom_pull(task_ids='load_cluster_config', key='cluster_configs')['CLUSTER_CONFIG']['master_config']['num_instances']}}"
 master_machine_type = "{{task_instance.xcom_pull(task_ids='load_cluster_config', key='cluster_configs')['CLUSTER_CONFIG']['master_config']['machine_type_uri']}}"
@@ -302,6 +306,12 @@ consumer_job = DataprocSubmitPySparkJobOperator(
     dag=dag
 )
 
+trigger_build_dbt_model = TriggerDagRunOperator(
+    task_id="trigger_build_dbt_model",
+    trigger_dag_id="build_dbt_model",
+    dag=dag
+)
+
 all_success = DummyOperator(
         task_id='all_task_success',
         dag=dag,
@@ -318,5 +328,5 @@ delete_cluster = DataprocDeleteClusterOperator(
 
 generate_stream_data >> load_cluster_config >> check_cluster_task >> [cluster_running, create_cluster]
 [cluster_running, create_cluster] >> one_success >> [consumer_job, producer_job]
-[consumer_job, producer_job] >> all_success >> delete_cluster
+[consumer_job, producer_job] >> all_success >> trigger_build_dbt_model >> delete_cluster
 
