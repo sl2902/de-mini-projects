@@ -1,5 +1,14 @@
+
+docker compose -f kafka_docker_compose.yaml up -d
+
+docker compose -f kafka_docker_compose.yaml down
+
 docker-compose exec kafka kafka-topics --create --topic bookings-topic --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
 
 docker-compose exec kafka kafka-topics --bootstrap-server=localhost:9092 --list
 
 docker-compose exec kafka kafka-topics --create --topic payments-topic --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
+
+docker compose -f kafka_docker_compose.yaml exec -it kafka kafka-console-consumer --bootstrap-server localhost:9092 --topic bookings-topic --from-beginning
+
+docker compose -f kafka_docker_compose.yaml exec -it kafka kafka-topics --create --topic bookings-topic --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
